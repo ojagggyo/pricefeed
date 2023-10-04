@@ -1,0 +1,30 @@
+cd ~
+rm -rf pm2test
+
+
+git clone https://github.com/ojagggyo/pm2test.git
+cd pm2test
+npm install
+
+pm2 start pm2test.js
+
+
+docker build -t pm2test .
+
+docker run -itd \
+    --name pm2test \
+    -v $(pwd)/config.json:/app/config.json \
+    pm2test
+
+
+docker container ls -a
+
+docker container stop [コンテナID]
+docker container stop pm2test
+docker container start pm2test
+
+docker logs pm2test
+
+docker rm [コンテナID]
+docker rm pm2test
+
