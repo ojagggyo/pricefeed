@@ -82,6 +82,12 @@ function startProcess() {
     }, 0);
   }
 
+  if (config.exchanges.indexOf('binance') >= 0) {
+    loadPriceBinance(function (price) {
+      prices.push(price);
+    }, 0);
+  }
+
   // Publish the average of all markets that were loaded
   setTimeout(function() {
     if (prices.length == 0) {
@@ -212,6 +218,29 @@ function loadPriceCloudflare(callback, retries) {
       if (retries <= config.price_feed_max_retry) {
         setTimeout(function () { 
           loadPriceCloudflare(loadPriceCloudflare, retries + 1);
+        }, config.retry_interval * 1000);
+      }
+    }
+  });
+}
+
+function loadPriceBinance(callback, retries) {
+  // Load STEEM price in USDT directly from Binance
+  request.get('https://api.binance.com/api/v3/avgPrice?symbol=STEEMUSDT', function (e, r, data) {
+    try {
+      const steem_price = parseFloat(JSON.parse(data).price);
+
+      log('Loaded STEEM Price from Binance: ' + steem_price);
+
+      if (callback) {
+        callback(steem_price);
+      }
+    } catch (err) {
+      log('Error loading STEEM price from Binance: ' + err);
+
+      if(retries <= config.price_feed_max_retry) {
+        setTimeout(function () { 
+          loadPriceBinance(callback, retries + 1); 
         }, config.retry_interval * 1000);
       }
     }
